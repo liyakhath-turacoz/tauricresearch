@@ -57,7 +57,7 @@ Full release notes are in [CHANGELOG.md](CHANGELOG.md).
 
 <div align="center">
 
-🚀 [TradingAgents](#tradingagents-framework) | ⚡ [Installation & CLI](#installation-and-cli) | 🎬 [Demo](https://www.youtube.com/watch?v=90gr5lwjIho) | 📦 [Package Usage](#tradingagents-package) | 🤝 [Contributing](#contributing) | 📄 [Citation](#citation)
+🚀 [TradingAgents](#tradingagents-framework) | ⚡ [Installation & CLI](#installation-and-cli) | 🖥️ [Personal Local Dashboard](#personal-local-dashboard) | 🎬 [Demo](https://www.youtube.com/watch?v=90gr5lwjIho) | 📦 [Package Usage](#tradingagents-package) | 🤝 [Contributing](#contributing) | 📄 [Citation](#citation)
 
 </div>
 
@@ -419,8 +419,29 @@ Please reference our work if you find *TradingAgents* provides you with some hel
 ```
 ## Personal Local Dashboard
 
-Start this checkout with `powershell -ExecutionPolicy Bypass -File .\Start-LocalUI.ps1`
-and open `http://127.0.0.1:8765`.
+This checkout includes an optional Windows dashboard for market discovery,
+individual analysis, sequential bulk runs, scheduled runs, saved reports and CSV
+exports. It uses the same TradingAgents workflow and configured data/LLM providers
+as the CLI; it does not place real or paper orders.
+
+Create the project's virtual environment and install its dependencies if you have
+not already done so:
+
+```powershell
+py -3.13 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install .
+Copy-Item .env.example .env
+```
+
+Add a key for your chosen hosted LLM provider to `.env` (or configure a local
+Ollama-compatible provider), then launch the dashboard from the repository root:
+
+```powershell
+.\Start-LocalUI.ps1
+```
+
+Open `http://127.0.0.1:8765` and sign in with:
 
 - **Email:** `admin@turacoz.com`
 - **Password:** `admin`
@@ -429,6 +450,13 @@ These intentionally simple, hard-coded credentials are for personal local use,
 not production. The server remains bound to loopback. Sign out ends the browser
 session without stopping background schedules. A server restart requires signing
 in again. CLI analyses do not require this browser login.
+
+The dashboard can discover assets and search by ticker/company, run one asset or
+selected assets, and show BUY/HOLD/SELL/REVIEW outcomes with links to full reports.
+Bulk assets run sequentially and each completed result is saved. All analyst
+stages run automatically; crypto skips company fundamentals. Starting an analysis
+or saving a schedule authorizes use of the configured AI provider and may incur
+charges.
 
 ### Run Now or Schedule
 
@@ -513,7 +541,9 @@ occurrences are removed at the next scheduler check, and a one-time definition
 that never ran is removed after its scheduled day ends. Future one-time schedules
 and repeating definitions are not deleted just because their creation date is old.
 
-Restart the local server after updating backend files, then reload and sign in.
+Stop the dashboard from its **Stop UI server** control or run
+`.\Start-LocalUI.ps1 -Stop`. Restart the local server after updating backend
+files, then reload and sign in.
 An older server version is detected by the UI and new analyses are blocked until
 the restart. Offline checks: `node tests/test_dashboard_ui.cjs` and
 `.\.venv\Scripts\python.exe -B -m pytest -q -p no:cacheprovider`.
