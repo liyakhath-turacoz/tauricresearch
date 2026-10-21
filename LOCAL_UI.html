@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark"><meta name="local-ui-token" content="__LOCAL_UI_TOKEN__">
+  <title>TradingAgents · Research Terminal</title><link rel="stylesheet" href="/local_ui.css">
+  <script src="/local_ui.js" defer></script>
+  <script src="/scheduling_ui.js" defer></script>
+  <script src="/price_ranges_ui.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="TradingAgents home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 17 6-6 4 3 8-10M15 4h6v6"/></svg></span><span>TradingAgents<small>RESEARCH TERMINAL</small></span></a>
+    <div class="search-wrap"><label class="sr-only" for="assetSearch">Search stocks and cryptocurrencies</label><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="assetSearch" type="search" autocomplete="off" placeholder="Search company, coin or ticker…"><span class="search-label">YAHOO</span><div id="searchResults" class="search-results" hidden aria-live="polite"></div></div>
+    <div class="connection"><span class="dot" id="connectionDot"></span><span id="connectionText">Connecting</span><time id="localClock"></time><button id="logout" class="text-button">Sign out</button></div>
+  </header>
+  <main class="workspace">
+    <div class="page-heading"><div><div class="eyebrow">YOUR MARKET WORKSPACE</div><h1>Find the move. Read the case.</h1><p>Discover assets with Yahoo Finance. Run the agent team on one asset or a selected universe.</p></div><span class="pill">LOCAL · 127.0.0.1:8765</span></div>
+    <div id="scheduleBanner" class="notice schedule-banner" role="status" hidden>Scheduling mode: this selection will NOT run now. Choose a future time below, then save the schedule.</div>
+    <div id="notice" class="notice" role="status" hidden></div>
+    <details id="priceRangeControls" class="card price-range-settings">
+      <summary>Optional price estimates <span id="rangeSummary">Off</span></summary>
+      <div class="price-range-body">
+      <label class="schedule-toggle"><input id="rangesEnabled" type="checkbox">Show estimated price low / high with recommendations</label>
+      <label class="range-interval" for="rangeInterval">Candle size<select id="rangeInterval"><option value="15">15-minute candles</option><option value="30">30-minute candles</option><option value="60">1-hour candles</option></select></label>
+      <p id="rangeSettingsStatus" role="status">Off. Standard recommendation columns only.</p>
+      <small>Remaining candles of the current session only, through the exchange close. Historical estimates, not guaranteed prices. Closed markets or unreliable data show unavailable; crypto uses the remaining UTC day. No orders.</small>
+      </div>
+    </details>
+    <nav class="tabs" role="tablist" aria-label="Analysis mode">
+      <button id="tab-bulk" role="tab" aria-selected="true" aria-controls="panel-bulk" data-tab="bulk">Bulk discovery <span id="bulkSelectedBadge">0</span></button>
+      <button id="tab-individual" role="tab" aria-selected="false" aria-controls="panel-individual" tabindex="-1" data-tab="individual">Individual analysis</button>
+      <button id="tab-reports" role="tab" aria-selected="false" aria-controls="panel-reports" tabindex="-1" data-tab="reports">Saved runs &amp; reports</button>
+      <button id="tab-schedules" role="tab" aria-selected="false" aria-controls="panel-schedules" tabindex="-1" data-tab="schedules">Schedules</button>
+    </nav>
+    <section id="panel-bulk" role="tabpanel" aria-labelledby="tab-bulk">
+      <div class="metrics">
+        <button class="metric" data-scope="global"><span>GLOBAL STOCKS</span><strong id="countGlobal">—</strong><small>100 · gainers, losers &amp; activity</small></button>
+        <button class="metric" data-scope="india"><span>INDIAN STOCKS</span><strong id="countIndia">—</strong><small>100 additional · NSE / BSE coverage</small></button>
+        <button class="metric" data-scope="crypto"><span>CRYPTOCURRENCIES</span><strong id="countCrypto">—</strong><small>200 · USD pairs, activity &amp; cap</small></button>
+        <div class="metric selected-metric"><span>YOUR SELECTION</span><strong id="countSelected">0</strong><small>assets queued for your next run</small></div>
+      </div>
+      <div class="discovery-meta"><span id="discoveryStatus">Fetching the latest Yahoo snapshot…</span><button id="refreshDiscovery" class="text-button">Refresh discovery</button></div>
+      <details id="coverageDetails" class="coverage" hidden><summary>Data coverage and source notes <span id="coverageCount"></span></summary><div id="coverageNotes"></div></details>
+      <div class="discovery-layout">
+        <section class="card market-card">
+          <div class="card-head"><div><h2 id="universeTitle">Global stock discovery</h2><p id="universeSubtitle">A balanced mix of gainers, losers and most active stocks.</p></div><div class="segmented" aria-label="Universe"><button class="active" data-scope="global">Global</button><button data-scope="india">India</button><button data-scope="crypto">Crypto</button><button data-scope="sector">Sectors</button></div></div>
+          <div id="sectorControls" class="sector-controls" hidden><label>Market<select id="sectorScope"><option value="global">Global</option><option value="india">India</option></select></label><label>Sector<select id="sectorSelect"><option value="technology">IT / Technology</option><option value="healthcare">Healthcare</option><option value="financial-services">Financial services</option><option value="consumer-cyclical">Consumer cyclical</option><option value="consumer-defensive">Consumer defensive</option><option value="communication-services">Communication services</option><option value="industrials">Industrials</option><option value="basic-materials">Basic materials</option><option value="energy">Energy</option><option value="real-estate">Real estate</option><option value="utilities">Utilities</option></select></label><label>Top<select id="sectorLimit"><option value="20">20 stocks</option><option value="10">10 stocks</option></select></label><button id="loadSector" class="secondary">Load sector</button></div>
+          <div class="table-toolbar"><label class="sr-only" for="filterAssets">Filter displayed assets</label><input id="filterAssets" type="search" placeholder="Filter names or symbols"><label class="sr-only" for="sortAssets">Sort assets</label><select id="sortAssets"><option value="rank">Discovery order</option><option value="gainers">Biggest gainers</option><option value="losers">Biggest losers</option><option value="volume">Most active</option><option value="name">Name A–Z</option></select><span id="visibleCount" class="muted">0 assets</span></div>
+          <div class="table-scroll universe-scroll"><table><thead><tr><th class="check-column"><input id="selectVisible" type="checkbox" aria-label="Select all displayed assets"></th><th>Asset / symbol</th><th class="number">Price</th><th class="number">Day change</th><th class="number">Volume</th><th>Discovery signal</th><th><span class="sr-only">Individual analysis</span></th></tr></thead><tbody id="assetRows"><tr><td colspan="7" class="empty">Loading asset discovery. No AI analysis runs during discovery.</td></tr></tbody></table></div>
+          <div class="selection-bar"><span><strong id="selectedLabel">0 assets selected</strong><small id="selectionPreview">Select rows across any market or sector.</small></span><div class="button-row"><button id="selectTwo" class="secondary small">Select first 2</button><button id="selectTwenty" class="secondary small">Select first 20</button><button id="clearSelection" class="text-button">Clear all</button></div></div>
+        </section>
+        <aside class="card run-card"><div class="eyebrow">BULK ANALYSIS</div><h2>One workflow.<br>Every selected asset.</h2><p>The existing agent pipeline runs once per asset, sequentially. Results save after each completion.</p><div class="run-count"><strong id="runCount">0</strong><span>selected assets<br><small>one full analysis per asset</small></span></div><label class="schedule-toggle"><input id="scheduleBulk" type="checkbox">Schedule this selection instead of running now</label><button id="runBulk" class="primary full" disabled>Run selected assets</button><p class="small-note">Runs use today in IST and all analysts (crypto skips company fundamentals). Starting uses the configured AI APIs and may incur charges.</p></aside>
+      </div>
+    </section>
+    <section id="panel-schedules" role="tabpanel" aria-labelledby="tab-schedules" hidden>
+      <section class="card"><div class="card-head"><div><div class="eyebrow">AUTOMATIC ANALYSIS</div><h2>Schedules</h2><p>Create schedules from the Individual or Bulk tab. Review status here, stop, resume, delete, or reschedule timing. Assets and analysts stay fixed. All times use IST.</p></div><button id="pauseAllSchedules" class="danger">Pause all schedules</button></div><p id="backgroundStatus" class="notice info" role="status">Loading scheduler status…</p><button id="retryBackground" class="text-button">Reconnect Windows background task</button><p class="small-note">Closing the browser is fine. Windows background scheduling requires this PC to be awake and your account logged in. Runs missed by over 15 minutes are skipped. A busy runner queues jobs for the same day. No exchange holiday filter is applied.</p></section>
+      <section class="card"><h2>Saved schedules</h2><label>Show <select id="scheduleListFilter"><option value="all">All schedules</option><option value="active">Queued / running</option><option value="upcoming">Enabled / upcoming</option><option value="stopped">Stopped</option></select></label><div class="table-scroll"><table><thead><tr><th>Name / assets</th><th>When (IST)</th><th>Next run</th><th>State</th><th>Controls</th></tr></thead><tbody id="scheduleRows"></tbody></table></div></section>
+      <section class="card"><h2>Recent scheduled activity</h2><p>Every launched run is also available in Saved runs &amp; reports, including stopped and failed jobs.</p><div class="table-scroll"><table><thead><tr><th>Schedule</th><th>Due (IST)</th><th>Analysis date</th><th>Outcome</th><th>Results</th></tr></thead><tbody id="occurrenceRows"></tbody></table></div></section>
+    </section>
+    <section id="panel-individual" role="tabpanel" aria-labelledby="tab-individual" hidden>
+      <div class="individual-layout"><section class="card"><div class="eyebrow">INDIVIDUAL ANALYSIS</div><h2>Focus on one asset.</h2><p>Use the top search to find the correct company or coin, or enter its Yahoo ticker below.</p><form id="individualForm"><label for="ticker">Yahoo ticker</label><div class="inline-input"><input id="ticker" value="NVDA" maxlength="32" required autocomplete="off" placeholder="NVDA, RELIANCE.NS, BTC-USD"><button class="secondary" type="button" id="resolveTicker">Find asset</button></div><div id="individualAsset" class="asset-preview"><span class="avatar">NV</span><div><strong>NVIDIA Corporation</strong><small>NVDA · Stock</small></div></div><label class="schedule-toggle"><input id="scheduleIndividual" type="checkbox">Schedule this asset instead of running now</label><button id="runIndividual" class="primary" type="submit">Run individual analysis</button></form></section><section class="card how-card"><h2>Read the final decision first.</h2><p>The table shows BUY, HOLD or SELL derived from the Portfolio Manager’s final rating.</p><dl><div><dt>Buy / Overweight</dt><dd>BUY direction; read the sizing and conditions.</dd></div><div><dt>Hold</dt><dd>HOLD direction.</dd></div><div><dt>Underweight / Sell</dt><dd>SELL direction; underweight can mean a partial trim.</dd></div><div><dt>Review</dt><dd>No reliable final rating was produced.</dd></div></dl><p class="small-note">Full reports preserve all analyst, research, trader and risk decisions.</p></section></div>
+    </section>
+    <section id="scheduleEditor" class="card inline-schedule" hidden>
+      <div class="eyebrow">SCHEDULE ONLY - NO ANALYSIS STARTS WHEN YOU SAVE</div><h2>When should this selection run?</h2>
+      <p id="scheduleSelectionPreview"></p>
+      <div class="schedule-grid">
+        <label>Schedule name<input id="scheduleName" maxlength="80" placeholder="My market review"></label>
+        <label>Repeat<select id="scheduleFrequency"><option value="once">Once, on a date</option><option value="daily">Every day</option></select></label>
+        <label id="scheduleDateField">Run on<input id="scheduleDate" type="date"></label>
+        <label>Time (IST)<input id="scheduleTime" type="time" value="09:30"></label>
+      </div>
+      <p class="small-note">Uses this tab's selected assets and all analysts. Each occurrence analyses its scheduled IST day, never the day you created it. Saving authorizes configured AI API usage at those times; charges may apply. Nothing runs now.</p>
+      <button id="saveInlineSchedule" type="button" class="primary">Save schedule</button>
+    </section>
+    <div id="resultsHome"></div>
+    <section class="card results-card" hidden><div class="card-head"><div><div class="eyebrow">AGENT DECISIONS</div><h2>Analysis results</h2><p id="jobMessage">No active analysis. Discover assets and choose a run.</p></div><div class="button-row"><span class="state-badge" id="jobState">IDLE</span><button id="deleteRun" class="danger" hidden>Delete run</button><button id="closeRun" class="secondary">Close results</button></div></div><div class="job-toolbar"><div class="progress-wrap"><progress id="jobProgress" max="1" value="0"></progress><span id="jobProgressLabel">0 / 0 completed</span><span id="runDeadline" class="expiry-timer"></span></div><button id="stopAnalysis" class="danger" hidden>Stop queue</button><label class="sr-only" for="jobHistory">Saved runs</label><select id="jobHistory" hidden><option value="">Latest / active run</option></select><label class="sr-only" for="resultFilter">Filter recommendations</label><select id="resultFilter"><option value="all">All outcomes</option><option value="BUY">BUY</option><option value="HOLD">HOLD</option><option value="SELL">SELL</option><option value="REVIEW">REVIEW</option><option value="failed">Failed</option></select><a id="exportCsv" class="secondary link-button" hidden download>Export CSV</a></div><div class="table-scroll"><table class="results-table"><thead><tr><th>Asset / symbol</th><th>Recommendation</th><th>Final rating</th><th>Analysis date</th><th>Status</th><th>Report</th></tr></thead><tbody id="resultRows"><tr><td colspan="6" class="empty">Each completed analysis will appear here with its full report.</td></tr></tbody></table></div><details class="cli-output"><summary>Agent output / error details</summary><pre id="jobLog" role="log"></pre></details></section>
+    <section id="panel-reports" role="tabpanel" aria-labelledby="tab-reports" class="card" hidden><div class="card-head"><div><h2>Saved runs &amp; reports</h2><p>Individual, bulk and scheduled run history, including failed and stopped runs. Open a run for its decisions and CSV.</p></div><button id="refreshReports" class="secondary">Refresh reports</button></div><nav id="runViews" class="run-views" aria-label="Saved run categories"><button type="button" data-run-view="running" aria-pressed="false">Running</button><button type="button" data-run-view="stopped" aria-pressed="false">Stopped / failed</button><button type="button" data-run-view="completed" aria-pressed="false">Completed</button><button type="button" data-run-view="all" aria-pressed="true">All runs</button></nav><p class="history-note">Unfinished/stopped runs expire 24 hours after creation. Timers never reset on refresh. Completed report files stay saved.</p><div class="table-scroll"><table><thead><tr><th>Started (IST)</th><th>Run / source</th><th>Analysis date</th><th>Assets</th><th>Status / time left</th><th>Open / controls</th></tr></thead><tbody id="savedRunRows"></tbody></table></div><div id="savedResults"></div><h2 class="saved-report-heading">Research report files</h2><div class="table-scroll"><table><thead><tr><th>Asset / symbol</th><th>Analysis date</th><th>Final rating</th><th>Saved at</th><th>Report</th></tr></thead><tbody id="reportRows"></tbody></table></div></section>
+    <dialog id="rescheduleDialog" class="card reschedule-dialog">
+      <form id="rescheduleForm"><h2>Reschedule timing</h2><p id="rescheduleSummary"></p>
+        <div class="schedule-grid">
+          <label>Repeat<select id="rescheduleFrequency"><option value="once">Once</option><option value="daily">Every day</option></select></label>
+          <label id="rescheduleDateField">Run on<input id="rescheduleDate" type="date"></label>
+          <label>Time (IST)<input id="rescheduleTime" type="time" required></label>
+        </div><p>Assets and analysts cannot be changed here. Rescheduling enables future runs; it does not start a run now or stop an already running occurrence.</p>
+        <p id="rescheduleError" class="row-error" role="alert"></p><div class="button-row"><button id="confirmReschedule" class="primary" type="submit">Save new timing</button><button id="cancelReschedule" class="secondary" type="button">Cancel</button></div>
+      </form>
+    </dialog>
+    <footer><span>Yahoo Finance discovery · locally saved research · no order execution</span><button id="stopServer" class="text-button">Stop UI server</button></footer>
+  </main>
+</body>
+</html>

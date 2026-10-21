@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="local-ui-token" content="__LOCAL_UI_TOKEN__">
+  <title>TradingAgents | Local Sign In</title>
+  <link rel="stylesheet" href="/local_ui.css"><script src="/login.js" defer></script>
+</head>
+<body class="login-page">
+  <main class="card login-card">
+    <div class="eyebrow">YOUR PRIVATE RESEARCH WORKSPACE</div>
+    <h1>Welcome back.</h1><p>Sign in to your local TradingAgents dashboard.</p>
+    <form id="loginForm">
+      <label for="loginEmail">Email</label><input id="loginEmail" type="email" autocomplete="username" required autofocus>
+      <label for="loginPassword">Password</label><input id="loginPassword" type="password" autocomplete="current-password" required>
+      <p id="loginError" class="row-error" role="alert"></p>
+      <button class="primary full" id="loginSubmit" type="submit">Sign in</button>
+    </form>
+    <p class="small-note">Personal local use only. Signing out does not stop scheduled analyses.</p>
+  </main>
+</body>
+</html>
